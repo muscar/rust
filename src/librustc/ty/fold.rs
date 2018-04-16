@@ -255,7 +255,7 @@ impl<'a, 'gcx, 'tcx> TyCtxt<'a, 'gcx, 'tcx> {
 
             fn visit_region(&mut self, r: ty::Region<'tcx>) -> bool {
                 match *r {
-                    ty::ReLateBound(debruijn, _) if debruijn.depth <= self.current_depth => {
+                    ty::ReLateBound(debruijn, _) if debruijn.to_depth() <= self.current_depth => {
                         /* ignore bound regions */
                     }
                     _ => (self.callback)(r),
@@ -310,7 +310,7 @@ impl<'a, 'gcx, 'tcx> TypeFolder<'gcx, 'tcx> for RegionFolder<'a, 'gcx, 'tcx> {
 
     fn fold_region(&mut self, r: ty::Region<'tcx>) -> ty::Region<'tcx> {
         match *r {
-            ty::ReLateBound(debruijn, _) if debruijn.depth < self.current_depth => {
+            ty::ReLateBound(debruijn, _) if debruijn.to_depth() < self.current_depth => {
                 debug!("RegionFolder.fold_region({:?}) skipped bound region (current depth={})",
                        r, self.current_depth);
                 *self.skipped_regions = true;
@@ -384,9 +384,9 @@ impl<'a, 'gcx, 'tcx> TyCtxt<'a, 'gcx, 'tcx> {
         let value = self.fold_regions(bound0_value, &mut false,
                                       |region, current_depth| {
             match *region {
-                ty::ReLateBound(debruijn, br) if debruijn.depth >= current_depth => {
+                ty::ReLateBound(debruijn, br) if debruijn.to_depth() >= current_depth => {
                     // should be true if no escaping regions from bound2_value
-                    assert!(debruijn.depth - current_depth <= 1);
+                    assert!(debruijn.to_depth() - current_depth <= 1);
                     self.mk_region(ty::ReLateBound(ty::DebruijnIndex::new(current_depth), br))
                 }
                 _ => {
@@ -487,14 +487,14 @@ impl<'a, 'gcx, 'tcx> TypeFolder<'gcx, 'tcx> for RegionReplacer<'a, 'gcx, 'tcx> {
 
     fn fold_region(&mut self, r: ty::Region<'tcx>) -> ty::Region<'tcx> {
         match *r {
-            ty::ReLateBound(debruijn, br) if debruijn.depth == self.current_depth => {
+            ty::ReLateBound(debruijn, br) if debruijn.to_depth() == self.current_depth => {
                 let fld_r = &mut self.fld_r;
                 let region = *self.map.entry(br).or_insert_with(|| fld_r(br));
                 if let ty::ReLateBound(debruijn1, br) = *region {
                     // If the callback returns a late-bound region,
                     // that region should always use depth 1. Then we
                     // adjust it to the correct depth.
-                    assert_eq!(debruijn1.depth, 1);
+                    assert_eq!(debruijn1.to_depth(), 1);
                     self.tcx.mk_region(ty::ReLateBound(debruijn, br))
                 } else {
                     region
@@ -666,7 +666,7 @@ impl<'tcx> TypeVisitor<'tcx> for LateBoundRegionsCollector {
 
     fn visit_region(&mut self, r: ty::Region<'tcx>) -> bool {
         match *r {
-            ty::ReLateBound(debruijn, br) if debruijn.depth == self.current_depth => {
+            ty::ReLateBound(debruijn, br) if debruijn.to_depth() == self.current_depth => {
                 self.regions.insert(br);
             }
             _ => { }

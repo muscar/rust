@@ -135,11 +135,11 @@ impl<'a, 'gcx, 'tcx> Visitor<'gcx> for FindNestedTypeVisitor<'a, 'gcx, 'tcx> {
                     ) => {
                         debug!(
                             "LateBoundAnon depth = {:?} anon_index = {:?} br_index={:?}",
-                            debruijn_index.depth,
+                            debruijn_index.to_depth(),
                             anon_index,
                             br_index
                         );
-                        if debruijn_index.depth == self.depth && anon_index == br_index {
+                        if debruijn_index.to_depth() == self.depth && anon_index == br_index {
                             self.found_type = Some(arg);
                             return; // we can stop visiting now
                         }
@@ -170,11 +170,11 @@ impl<'a, 'gcx, 'tcx> Visitor<'gcx> for FindNestedTypeVisitor<'a, 'gcx, 'tcx> {
                     ) => {
                         debug!(
                             "FindNestedTypeVisitor::visit_ty: LateBound depth = {:?}",
-                            debruijn_index.depth
+                            debruijn_index.to_depth()
                         );
                         debug!("self.infcx.tcx.hir.local_def_id(id)={:?}", id);
                         debug!("def_id={:?}", def_id);
-                        if debruijn_index.depth == self.depth && id == def_id {
+                        if debruijn_index.to_depth() == self.depth && id == def_id {
                             self.found_type = Some(arg);
                             return; // we can stop visiting now
                         }
@@ -235,7 +235,7 @@ impl<'a, 'gcx, 'tcx> Visitor<'gcx> for TyPathVisitor<'a, 'gcx, 'tcx> {
         match (self.tcx.named_region(hir_id), self.bound_region) {
             // the lifetime of the TyPath!
             (Some(rl::Region::LateBoundAnon(debruijn_index, anon_index)), ty::BrAnon(br_index)) => {
-                if debruijn_index.depth == self.depth && anon_index == br_index {
+                if debruijn_index.to_depth() == self.depth && anon_index == br_index {
                     self.found_it = true;
                     return;
                 }
@@ -257,11 +257,11 @@ impl<'a, 'gcx, 'tcx> Visitor<'gcx> for TyPathVisitor<'a, 'gcx, 'tcx> {
             (Some(rl::Region::LateBound(debruijn_index, id, _)), ty::BrNamed(def_id, _)) => {
                 debug!(
                     "FindNestedTypeVisitor::visit_ty: LateBound depth = {:?}",
-                    debruijn_index.depth
+                    debruijn_index.to_depth()
                 );
                 debug!("id={:?}", id);
                 debug!("def_id={:?}", def_id);
-                if debruijn_index.depth == self.depth && id == def_id {
+                if debruijn_index.to_depth() == self.depth && id == def_id {
                     self.found_it = true;
                     return; // we can stop visiting now
                 }

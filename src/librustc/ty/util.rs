@@ -723,7 +723,7 @@ impl<'a, 'gcx, 'tcx, W> TypeVisitor<'tcx> for TypeIdHasher<'a, 'gcx, 'tcx, W>
                 self.hash(c);
             }
             ty::ReLateBound(db, ty::BrAnon(i)) => {
-                self.hash(db.depth);
+                self.hash(db.to_depth());
                 self.hash(i);
             }
             ty::ReEarlyBound(ty::EarlyBoundRegion { def_id, .. }) => {

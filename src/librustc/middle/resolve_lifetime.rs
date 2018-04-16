@@ -136,16 +136,12 @@ impl Region {
     fn from_depth(self, depth: u32) -> Region {
         match self {
             Region::LateBound(debruijn, id, origin) => Region::LateBound(
-                ty::DebruijnIndex {
-                    depth: debruijn.depth - (depth - 1),
-                },
+                ty::DebruijnIndex::new(debruijn.to_depth() - (depth - 1)),
                 id,
                 origin,
             ),
             Region::LateBoundAnon(debruijn, index) => Region::LateBoundAnon(
-                ty::DebruijnIndex {
-                    depth: debruijn.depth - (depth - 1),
-                },
+                ty::DebruijnIndex::new(debruijn.to_depth() - (depth - 1)),
                 index,
             ),
             _ => self,
@@ -1875,7 +1871,7 @@ impl<'a, 'tcx> LifetimeContext<'a, 'tcx> {
                 if let Some(&lifetime) = self.map.defs.get(&lifetime_ref.id) {
                     match lifetime {
                         Region::LateBound(debruijn, _, _) | Region::LateBoundAnon(debruijn, _)
-                            if debruijn.depth < self.binder_depth =>
+                            if debruijn.to_depth() < self.binder_depth =>
                         {
                             self.have_bound_regions = true;
                         }

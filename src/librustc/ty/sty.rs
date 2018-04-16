@@ -1160,6 +1160,10 @@ impl DebruijnIndex {
         DebruijnIndex { depth: depth }
     }
 
+    pub fn to_depth(&self) -> u32 {
+        self.depth
+    }
+
     pub fn shifted(&self, amount: u32) -> DebruijnIndex {
         DebruijnIndex { depth: self.depth + amount }
     }
