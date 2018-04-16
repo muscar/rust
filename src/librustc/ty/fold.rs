@@ -292,7 +292,7 @@ impl<'a, 'gcx, 'tcx> RegionFolder<'a, 'gcx, 'tcx> {
         RegionFolder {
             tcx,
             skipped_regions,
-            current_depth: 1,
+            current_depth: 0,
             fld_r,
         }
     }
@@ -448,7 +448,7 @@ impl<'a, 'gcx, 'tcx> TyCtxt<'a, 'gcx, 'tcx> {
         let mut counter = 0;
         Binder(self.replace_late_bound_regions(sig, |_| {
             counter += 1;
-            self.mk_region(ty::ReLateBound(ty::DebruijnIndex::new(1), ty::BrAnon(counter)))
+            self.mk_region(ty::ReLateBound(ty::DebruijnIndex::new(0), ty::BrAnon(counter)))
         }).0)
     }
 }
@@ -460,7 +460,7 @@ impl<'a, 'gcx, 'tcx> RegionReplacer<'a, 'gcx, 'tcx> {
     {
         RegionReplacer {
             tcx,
-            current_depth: 1,
+            current_depth: 0,
             fld_r,
             map: BTreeMap::default()
         }
@@ -635,7 +635,7 @@ struct LateBoundRegionsCollector {
 impl LateBoundRegionsCollector {
     fn new(just_constrained: bool) -> Self {
         LateBoundRegionsCollector {
-            current_depth: 1,
+            current_depth: 0,
             regions: FxHashSet(),
             just_constrained,
         }

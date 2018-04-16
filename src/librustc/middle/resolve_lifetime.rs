@@ -98,7 +98,7 @@ impl Region {
     }
 
     fn late(hir_map: &Map, def: &hir::LifetimeDef) -> (hir::LifetimeName, Region) {
-        let depth = ty::DebruijnIndex::new(1);
+        let depth = ty::DebruijnIndex::new(0);
         let def_id = hir_map.local_def_id(def.lifetime.id);
         let origin = LifetimeDefOrigin::from_is_in_band(def.in_band);
         (def.lifetime.name, Region::LateBound(depth, def_id, origin))
@@ -107,7 +107,7 @@ impl Region {
     fn late_anon(index: &Cell<u32>) -> Region {
         let i = index.get();
         index.set(i + 1);
-        let depth = ty::DebruijnIndex::new(1);
+        let depth = ty::DebruijnIndex::new(0);
         Region::LateBoundAnon(depth, i)
     }
 
@@ -136,12 +136,12 @@ impl Region {
     fn from_depth(self, depth: u32) -> Region {
         match self {
             Region::LateBound(debruijn, id, origin) => Region::LateBound(
-                ty::DebruijnIndex::new(debruijn.to_depth() - (depth - 1)),
+                ty::DebruijnIndex::new(debruijn.to_depth() - depth),
                 id,
                 origin,
             ),
             Region::LateBoundAnon(debruijn, index) => Region::LateBoundAnon(
-                ty::DebruijnIndex::new(debruijn.to_depth() - (depth - 1)),
+                ty::DebruijnIndex::new(debruijn.to_depth() - depth),
                 index,
             ),
             _ => self,
@@ -1777,7 +1777,7 @@ impl<'a, 'tcx> LifetimeContext<'a, 'tcx> {
             .map(|(i, input)| {
                 let mut gather = GatherLifetimes {
                     map: self.map,
-                    binder_depth: 1,
+                    binder_depth: 0,
                     have_bound_regions: false,
                     lifetimes: FxHashSet(),
                 };

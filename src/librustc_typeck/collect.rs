@@ -736,7 +736,7 @@ fn has_late_bound_regions<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>,
                                         decl: &'tcx hir::FnDecl)
                                         -> Option<Span> {
         let mut visitor = LateBoundRegionsDetector {
-            tcx, binder_depth: 1, has_late_bound_regions: None
+            tcx, binder_depth: 0, has_late_bound_regions: None
         };
         for lifetime in generics.lifetimes() {
             let hir_id = tcx.hir.node_to_hir_id(lifetime.lifetime.id);
